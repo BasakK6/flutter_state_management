@@ -26,7 +26,6 @@ class _TodoViewState extends State<TodoView> {
 
   @override
   Widget build(BuildContext context) {
-    //print("TodoView build run");
     ProjectLogger().logger.i("TodoView build run");
     return Scaffold(
       appBar: buildAppBar(),
@@ -57,7 +56,6 @@ class CategoryBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    //print("CategoryBody build run");
     ProjectLogger().logger.i("CategoryBody build run");
     return Column(
       children: [
@@ -81,7 +79,6 @@ class CategoryTitleWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    //print("CategoryTitle build run");
     ProjectLogger().logger.i("CategoryTitle build run");
     return PhysicalModel(
       elevation: 20,
@@ -106,7 +103,6 @@ class CategoryItems extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // print("CategoryItems build run");
     ProjectLogger().logger.i("CategoryItems build run");
     return ListView.builder(
       itemBuilder: (BuildContext context, int index) {
@@ -150,7 +146,6 @@ class _CategoryInputState extends State<CategoryInput> {
 
   @override
   Widget build(BuildContext context) {
-    //print("CategoryInput build run");
     ProjectLogger().logger.i("CategoryInput build run");
     return DecoratedBox(
       decoration: BoxDecoration(border: Border.all()),
