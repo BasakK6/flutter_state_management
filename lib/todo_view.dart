@@ -20,52 +20,73 @@ class _TodoViewState extends State<TodoView> {
 
   void addTodo(String text) {
     setState(() {
-      todoRepository.addItem(text);
+      //todoRepository.addItem(text); //does not work because the list requires a new reference
+      todoRepository.addItemToNewList(text);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    //print("TodoView build run");
     ProjectLogger().logger.i("TodoView build run");
     return Scaffold(
       appBar: buildAppBar(),
-      body: CategoryBody(
+      body: CategoryAncestor(
         category: todoRepository.category,
         todoItems: todoRepository.todoItems,
         addTodo: addTodo,
+        child: const CategoryBody(),
       ),
     );
   }
 
   AppBar buildAppBar() {
-    return AppBar(title: const Text("My Todo List - Vanilla"));
+    return AppBar(title: const Text("My Todo List - InheritedWidget"));
+  }
+}
+
+class CategoryAncestor extends InheritedWidget {
+  const CategoryAncestor({
+    Key? key,
+    required Widget child,
+    required this.category,
+    required this.todoItems,
+    required this.addTodo,
+  }) : super(key: key, child: child);
+
+  final String category;
+  final List<String> todoItems;
+  final void Function(String text) addTodo;
+
+  static CategoryAncestor of(BuildContext context) {
+    final CategoryAncestor? result =
+        context.dependOnInheritedWidgetOfExactType<CategoryAncestor>();
+    assert(result != null, 'No CategoryAncestor found in context');
+    return result!;
+  }
+
+  @override
+  bool updateShouldNotify(CategoryAncestor oldWidget) {
+    return oldWidget.category != category ||
+        oldWidget.todoItems != todoItems ||
+        oldWidget.addTodo != addTodo;
   }
 }
 
 class CategoryBody extends StatelessWidget {
   const CategoryBody({
     super.key,
-    required this.category,
-    required this.todoItems,
-    required this.addTodo,
   });
-
-  final String category;
-  final List<String> todoItems;
-  final void Function(String text) addTodo;
 
   @override
   Widget build(BuildContext context) {
-    //print("CategoryBody build run");
     ProjectLogger().logger.i("CategoryBody build run");
     return Column(
-      children: [
-        CategoryTitleWidget(category: category),
+      children: const [
+        CategoryTitleWidget(),
         Expanded(
-          child: CategoryItems(todoItems: todoItems),
+          child: CategoryItems(),
         ),
-        CategoryInput(addTodo: addTodo),
+        CategoryInput(),
       ],
     );
   }
@@ -74,22 +95,20 @@ class CategoryBody extends StatelessWidget {
 class CategoryTitleWidget extends StatelessWidget {
   const CategoryTitleWidget({
     super.key,
-    required this.category,
   });
-
-  final String category;
 
   @override
   Widget build(BuildContext context) {
-    //print("CategoryTitle build run");
     ProjectLogger().logger.i("CategoryTitle build run");
+    var ancestor = CategoryAncestor.of(context);
+
     return PhysicalModel(
       elevation: 20,
       color: Colors.white,
       child: Center(
         child: Padding(
           padding: const EdgeInsets.all(25.0),
-          child: Text(category),
+          child: Text(ancestor.category),
         ),
       ),
     );
@@ -99,24 +118,22 @@ class CategoryTitleWidget extends StatelessWidget {
 class CategoryItems extends StatelessWidget {
   const CategoryItems({
     super.key,
-    required this.todoItems,
   });
-
-  final List<String> todoItems;
 
   @override
   Widget build(BuildContext context) {
-    // print("CategoryItems build run");
     ProjectLogger().logger.i("CategoryItems build run");
+    var ancestor = CategoryAncestor.of(context);
+
     return ListView.builder(
       itemBuilder: (BuildContext context, int index) {
         return Card(
           child: ListTile(
-            title: Text(todoItems[index]),
+            title: Text(ancestor.todoItems[index]),
           ),
         );
       },
-      itemCount: todoItems.length,
+      itemCount: ancestor.todoItems.length,
     );
   }
 }
@@ -124,10 +141,7 @@ class CategoryItems extends StatelessWidget {
 class CategoryInput extends StatefulWidget {
   const CategoryInput({
     super.key,
-    required this.addTodo,
   });
-
-  final void Function(String text) addTodo;
 
   @override
   State<CategoryInput> createState() => _CategoryInputState();
@@ -150,8 +164,9 @@ class _CategoryInputState extends State<CategoryInput> {
 
   @override
   Widget build(BuildContext context) {
-    //print("CategoryInput build run");
     ProjectLogger().logger.i("CategoryInput build run");
+    var ancestor = CategoryAncestor.of(context);
+
     return DecoratedBox(
       decoration: BoxDecoration(border: Border.all()),
       child: Row(
@@ -167,7 +182,7 @@ class _CategoryInputState extends State<CategoryInput> {
             padding: const EdgeInsets.only(right: 8.0),
             child: ElevatedButton(
               onPressed: () {
-                widget.addTodo(controller.text);
+                ancestor.addTodo(controller.text);
                 controller.clear();
               },
               child: const Text("Add"),

@@ -10,4 +10,8 @@ class TodoRepository {
   void addItem(String text) {
     todoItems.add(text);
   }
+
+  void addItemToNewList(String text) {
+    todoItems = [...todoItems, text];
+  }
 }
