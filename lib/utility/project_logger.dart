@@ -6,9 +6,9 @@ class ProjectLogger {
   );
 
   //Singleton Pattern
-  ProjectLogger._private_constuctor();
+  ProjectLogger._privateConstructor();
 
-  static final ProjectLogger _instance = ProjectLogger._private_constuctor();
+  static final ProjectLogger _instance = ProjectLogger._privateConstructor();
 
   factory ProjectLogger() {
     return _instance;
