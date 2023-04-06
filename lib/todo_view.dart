@@ -1,135 +1,103 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_state_management/utility/project_logger.dart';
 import 'package:flutter_state_management/repository/todo_repository.dart';
 
-class TodoView extends StatefulWidget {
+class TodoView extends StatelessWidget {
   const TodoView({Key? key}) : super(key: key);
-
-  @override
-  State<TodoView> createState() => _TodoViewState();
-}
-
-class _TodoViewState extends State<TodoView> {
-  late TodoRepository todoRepository;
-
-  @override
-  void initState() {
-    super.initState();
-    todoRepository = TodoRepository();
-  }
-
-  void addTodo(String text) {
-    setState(() {
-      todoRepository.addItem(text);
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     ProjectLogger().logger.i("TodoView build run");
     return Scaffold(
       appBar: buildAppBar(),
-      body: CategoryBody(
-        category: todoRepository.category,
-        todoItems: todoRepository.todoItems,
-        addTodo: addTodo,
-      ),
+      body: const CategoryBody(),
     );
   }
 
   AppBar buildAppBar() {
-    return AppBar(title: const Text("My Todo List - Vanilla"));
+    return AppBar(title: const Text("My Todo List - Riverpod"));
   }
 }
 
 class CategoryBody extends StatelessWidget {
   const CategoryBody({
     super.key,
-    required this.category,
-    required this.todoItems,
-    required this.addTodo,
   });
-
-  final String category;
-  final List<String> todoItems;
-  final void Function(String text) addTodo;
 
   @override
   Widget build(BuildContext context) {
     ProjectLogger().logger.i("CategoryBody build run");
     return Column(
-      children: [
-        CategoryTitleWidget(category: category),
+      children: const [
+        CategoryTitleWidget(),
         Expanded(
-          child: CategoryItems(todoItems: todoItems),
+          child: CategoryItems(),
         ),
-        CategoryInput(addTodo: addTodo),
+        CategoryInput(),
       ],
     );
   }
 }
 
-class CategoryTitleWidget extends StatelessWidget {
+class CategoryTitleWidget extends ConsumerWidget {
   const CategoryTitleWidget({
     super.key,
-    required this.category,
   });
 
-  final String category;
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     ProjectLogger().logger.i("CategoryTitle build run");
+
+    final todoRepository = ref.watch(todoRepositoryProvider);
+
     return PhysicalModel(
       elevation: 20,
       color: Colors.white,
       child: Center(
         child: Padding(
           padding: const EdgeInsets.all(25.0),
-          child: Text(category),
+          child: Text(todoRepository.category ?? ""),
         ),
       ),
     );
   }
 }
 
-class CategoryItems extends StatelessWidget {
+class CategoryItems extends ConsumerWidget {
   const CategoryItems({
     super.key,
-    required this.todoItems,
   });
 
-  final List<String> todoItems;
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     ProjectLogger().logger.i("CategoryItems build run");
+
+    final todoRepository = ref.watch(todoRepositoryProvider);
+
     return ListView.builder(
       itemBuilder: (BuildContext context, int index) {
         return Card(
           child: ListTile(
-            title: Text(todoItems[index]),
+            title: Text(todoRepository.todoItems[index] ?? ""),
           ),
         );
       },
-      itemCount: todoItems.length,
+      itemCount: todoRepository.todoItems.length ?? 0,
     );
   }
 }
 
-class CategoryInput extends StatefulWidget {
+class CategoryInput extends ConsumerStatefulWidget {
   const CategoryInput({
     super.key,
-    required this.addTodo,
   });
 
-  final void Function(String text) addTodo;
-
   @override
-  State<CategoryInput> createState() => _CategoryInputState();
+  ConsumerState<CategoryInput> createState() => _CategoryInputState();
 }
 
-class _CategoryInputState extends State<CategoryInput> {
+class _CategoryInputState extends ConsumerState<CategoryInput> {
   late final TextEditingController controller;
 
   @override
@@ -162,7 +130,7 @@ class _CategoryInputState extends State<CategoryInput> {
             padding: const EdgeInsets.only(right: 8.0),
             child: ElevatedButton(
               onPressed: () {
-                widget.addTodo(controller.text);
+                ref.read(todoRepositoryProvider).addItem(controller.text);
                 controller.clear();
               },
               child: const Text("Add"),
